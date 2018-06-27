@@ -22,7 +22,11 @@ def get_build_number():
     if no commit, this is an tag
     '''
     commitid = call('git rev-list --tags --no-walk --max-count=1')
-    count = call('git rev-list  %s.. --count' % commitid.output()[0])
+    if(not commitid.output()):
+        commitid = call('git rev-list HEAD --max-count=1')
+        count = call('git rev-list  %s --count' % commitid.output()[0])
+    else:
+        count = call('git rev-list  %s.. --count' % commitid.output()[0])
 
     return int(count.output()[0])
 

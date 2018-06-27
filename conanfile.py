@@ -9,10 +9,6 @@ import re
 
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
-def _UNUSED(*param):
-    pass
-
-
 
 class NodePlugin(ConanFile):
     name = "tesseract.plugin"
@@ -22,83 +18,80 @@ class NodePlugin(ConanFile):
     license = "Apache-2.0"
     homepage = "https://github.com/kedacomresearch/tesseract.plugin"
 
-    exports_sources = 'plugin/*'
+    exports_sources = 'conan.cmake', 'plugin/*'
     generators = "cmake"
 
     settings = "os", "arch", "compiler", "build_type"
-    options = {"shared": [True,False],
-               "fPIC": [True, False]
-              }
-    default_options = ("shared=True",
-                       "fPIC=True")
+    options = {"shared": [True, False], "fPIC": [True, False]}
+    default_options = ("shared=True", "fPIC=True")
 
     source_subfolder = "source_subfolder"
 
-    requires = "tesseract/3.05.01@yjjnls/stable"
+    def configure(self):
+        self.options["tesseract"].shared = True
 
     def requirements(self):
-        pass
+        self.requires("tesseract/3.05.01@yjjnls/stable")
 
     def config_options(self):
         if self.settings.os == "Windows":
             self.options.remove("fPIC")
-        self.options["node-plugin"].shared=True
+        # self.options["tesseract.plugin"].shared = True
+
+    def system_requirements(self):
+        """ Temporary requirement until pkgconfig_installer is introduced """
+        if tools.os_info.is_linux and tools.os_info.with_apt:
+            installer = tools.SystemPackageTool()
+            installer.install('pkg-config')
 
     def build(self):
         options = {
-            'arch':'x64',
+            'arch': 'x64',
             'compiler': '',
-            'debug':'',
+            'debug': '',
             'python': '',
         }
-        if os.environ.get('PYTHON',None):
-            options['python'] = '--python %s'%os.environ['PYTHON']
 
+        if os.environ.get('PYTHON', None):
+            options['python'] = '--python %s' % os.environ['PYTHON']
 
-        if self.settings.build_type =="Debug":
-            options["debug"]="--debug"
+        if self.settings.build_type == "Debug":
+            options["debug"] = "--debug"
 
         if platform.system() == "Windows":
             if self.settings.arch == "x86":
                 options["arch"] = "ia32"
 
             if self.settings.compiler == "Visual Studio":
-                _COMPILER={'15':'--msvs_version=2017',
-                '14':'--msvs_version=2015' }
+                _COMPILER = {'14': '--msvs_version=2015'}
                 msvs = str(self.settings.compiler.version)
-                assert ( msvs in _COMPILER.keys())
+                assert (msvs in _COMPILER.keys())
                 options["compiler"] = _COMPILER[msvs]
-        # else:
-        #     self.run("wget https://nodejs.org/dist/v10.4.0/node-v10.4.0-linux-x64.tar.xz")
-        #     self.run("tar -xf node-v10.4.0-linux-x64.tar.xz")
-        #     self.run("sudo cp -rf node-v10.4.0-linux-x64/* /usr/local")
-        #     self.run("sudo npm install -g node-gyp ")
-            
-        # filename = os.path.join('addon/src/version.h')
-        # f = open( filename,'wb')
-        # f.write('''#define __VERSION__ "%s"
-        # '''%self.version)
-        # f.close()
 
-        # self.run("node-gyp -C addon %(python)s configure %(compiler)s --arch=%(arch)s "%options)
-        # self.run("node-gyp -C addon %(python)s build %(debug)s "%options)
+        PKG_CONFIG_PATH = ""
+        for p in self.deps_cpp_info.lib_paths:
+            PKG_CONFIG_PATH = "%s\\pkgconfig%s%s" % (p, os.pathsep,
+                                                     PKG_CONFIG_PATH)
+
+        vars = {'PKG_CONFIG_PATH': "%s" % PKG_CONFIG_PATH}
 
         cmake = CMake(self)
-        cmake.configure(source_folder='plugin')
-        cmake.build()
-        #cmake.install()
+        with tools.environment_append(vars):
+            cmake.configure(source_folder='plugin')
+            cmake.build()
+            # cmake.install()
 
     def package(self):
-        ext='.dll'
+        ext = '.dll'
         if self.settings.os == 'Linux':
             ext = '.so'
 
-        src = 'plugin/build/%s'%self.settings.build_type
+        src = "%s" % self.settings.build_type
+        self.copy(pattern='*tesseract.plugin%s' % ext, dst="bin", src=src)
 
-        self.copy(pattern= 'tesseract.plugin', dst="bin",src = src)
-        # if platform.system() == "Windows":
-        #     self.copy(pattern= 'bin/case-converter-plugin%s'%ext)
-        # else:
-        #     self.copy(pattern= 'libcase-converter-plugin%s'%ext, dst="bin",src = 'lib')            
+        self.copy(
+            pattern='tesseract.plugin.test*',
+            dst="test",
+            src="test/%s" % self.settings.build_type)
+        self.copy(pattern='test.bmp', dst="test", src="plugin/test")
 
-        
