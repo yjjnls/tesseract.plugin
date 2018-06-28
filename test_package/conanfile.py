@@ -9,11 +9,14 @@ import platform
 class TestPackageConan(ConanFile):
     def system_requirements(self):
         if (not os.getenv("TESSDATA_PREFIX")):
+            if platform.system() == "Windows":
+                tessdata_dir = "c:\\"
+            else:
+                tessdata_dir = "/tmp/"
             self.run(
                 "git clone https://github.com/yjjnls/nothing.git --depth=1",
-                cwd=self.deps_cpp_info["tesseract.plugin"].build_paths[0])
-            os.environ["TESSDATA_PREFIX"] = "%snothing" % self.deps_cpp_info[
-                "tesseract.plugin"].build_paths[0]
+                cwd=tessdata_dir)
+            os.environ["TESSDATA_PREFIX"] = "%snothing" % tessdata_dir
 
     def test(self):
         if platform.system() == "Windows":
@@ -21,10 +24,11 @@ class TestPackageConan(ConanFile):
         else:
             self.run("sudo pip install cpplint")
 
+        # custom: source dir
         source_dir = "%s/../plugin" % os.path.dirname(__file__)
+
         for (root, dirs, files) in os.walk(source_dir):
             for filename in files:
-                # print os.path.join(root,filename)
                 if 'nlohmann' in os.path.join(root, filename):
                     continue
                 self.run(
@@ -32,15 +36,22 @@ class TestPackageConan(ConanFile):
                     % os.path.join(root, filename))
 
         bin_path = ""
-        for p in self.deps_cpp_info.bin_paths:
-            bin_path = "%s%s%s" % (p, os.pathsep, bin_path)
         if platform.system() == "Windows":
+            for p in self.deps_cpp_info.bin_paths:
+                bin_path = "%s%s%s" % (p, os.pathsep, bin_path)
             vars = {'PATH': "%s%s" % (bin_path, os.environ["PATH"])}
         else:
+            for p in self.deps_cpp_info.lib_paths:
+                bin_path = "%s%s%s" % (p, os.pathsep, bin_path)
             vars = {'LD_LIBRARY_PATH': bin_path}
 
+        # custom: run test
         with tools.environment_append(vars):
+            if platform.system() == "Windows":
+                command = "tesseract.plugin.test"
+            else:
+                command = "./tesseract.plugin.test"
             self.run(
-                "tesseract.plugin.test",
+                command,
                 cwd="%stest" %
                 self.deps_cpp_info["tesseract.plugin"].build_paths[0])

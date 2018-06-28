@@ -9,6 +9,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../conan.cmake)
 
 conan_project_group( _SOURCES ${CMAKE_CURRENT_SOURCE_DIR})
 conan_find_pkgconfig( 0.29.1 )
+conan_compiler_flags()
 pkg_check_modules(_MODULES  REQUIRED
                    lept
                    tesseract
@@ -22,21 +23,9 @@ add_library(tesseract.plugin  SHARED ${_SOURCES} )
 target_link_libraries(tesseract.plugin ${_MODULES_LIBRARIES} )
 
 
-set(instd ${CMAKE_HOME_DIRECTORY}/bin)
-if( MSVC )
-	set(instd ${instd}/win )
-else()
-	set(instd ${instd}/linux )
-endif()
+set(instd ${CMAKE_HOME_DIRECTORY}/../out)
 
-if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} STREQUAL x86_64)
-    set(instd "${instd}/x64")
-else()
-	set(instd "${instd}/x86")
-endif()
-message ("${instd}")
-
-install(TARGETS tesseract.plugin RUNTIME DESTINATION ${instd}
-                                 LIBRARY DESTINATION ${instd})
+install(TARGETS tesseract.plugin RUNTIME DESTINATION ${instd}/bin
+                                 LIBRARY DESTINATION ${instd}/lib)
 
 add_subdirectory(test)

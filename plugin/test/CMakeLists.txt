@@ -13,19 +13,6 @@ add_executable(tesseract.plugin.test ${_SOURCES} )
 target_link_libraries(tesseract.plugin.test ${_MODULES_LIBRARIES} )
 
 
-set(instd ${CMAKE_HOME_DIRECTORY}/bin)
-if( MSVC )
-	set(instd ${instd}/win )
-else()
-	set(instd ${instd}/linux )
-endif()
+set(instd ${CMAKE_HOME_DIRECTORY}/../out)
 
-if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} STREQUAL x86_64)
-    set(instd "${instd}/x64")
-else()
-	set(instd "${instd}/x86")
-endif()
-message ("${instd}")
-
-install(TARGETS tesseract.plugin.test RUNTIME DESTINATION ${instd}
-                                 LIBRARY DESTINATION ${instd})
+install(TARGETS tesseract.plugin.test RUNTIME DESTINATION ${instd}/test)

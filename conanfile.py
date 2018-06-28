@@ -3,9 +3,7 @@
 
 from conans import ConanFile, CMake, tools
 import os
-import shutil
 import platform
-import re
 
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
@@ -31,18 +29,28 @@ class NodePlugin(ConanFile):
         self.options["tesseract"].shared = True
 
     def requirements(self):
+        if self.settings.os == 'Linux':
+            self.run("sudo conan remote add upload_stable \
+            https://api.bintray.com/conan/${CONAN_USERNAME}/stable --insert 0")
+
+        # custom: requires
         self.requires("tesseract/3.05.01@yjjnls/stable")
 
     def config_options(self):
         if self.settings.os == "Windows":
             self.options.remove("fPIC")
-        # self.options["tesseract.plugin"].shared = True
 
     def system_requirements(self):
-        """ Temporary requirement until pkgconfig_installer is introduced """
-        if tools.os_info.is_linux and tools.os_info.with_apt:
-            installer = tools.SystemPackageTool()
-            installer.install('pkg-config')
+        if self.settings.os == 'Linux':
+            self.run(
+                "wget https://pkg-config.freedesktop.org/releases/pkg-config-0.29.1.tar.gz",
+                cwd="/tmp")
+            self.run("tar -zxf pkg-config-0.29.1.tar.gz", cwd="/tmp")
+            self.run(
+                "./configure --prefix=/usr --with-internal-glib --disable-host-tool --docdir=/usr/share/doc/pkg-config-0.29.1",
+                cwd="/tmp/pkg-config-0.29.1")
+            self.run("make", cwd="/tmp/pkg-config-0.29.1")
+            self.run("sudo make install", cwd="/tmp/pkg-config-0.29.1")
 
     def build(self):
         options = {
@@ -70,8 +78,8 @@ class NodePlugin(ConanFile):
 
         PKG_CONFIG_PATH = ""
         for p in self.deps_cpp_info.lib_paths:
-            PKG_CONFIG_PATH = "%s\\pkgconfig%s%s" % (p, os.pathsep,
-                                                     PKG_CONFIG_PATH)
+            PKG_CONFIG_PATH = "%s/pkgconfig%s%s" % (p, os.pathsep,
+                                                    PKG_CONFIG_PATH)
 
         vars = {'PKG_CONFIG_PATH': "%s" % PKG_CONFIG_PATH}
 
@@ -79,19 +87,8 @@ class NodePlugin(ConanFile):
         with tools.environment_append(vars):
             cmake.configure(source_folder='plugin')
             cmake.build()
-            # cmake.install()
+            cmake.install()
 
     def package(self):
-        ext = '.dll'
-        if self.settings.os == 'Linux':
-            ext = '.so'
-
-        src = "%s" % self.settings.build_type
-        self.copy(pattern='*tesseract.plugin%s' % ext, dst="bin", src=src)
-
-        self.copy(
-            pattern='tesseract.plugin.test*',
-            dst="test",
-            src="test/%s" % self.settings.build_type)
+        self.copy(pattern="*", dst=".", src="out")
         self.copy(pattern='test.bmp', dst="test", src="plugin/test")
-
