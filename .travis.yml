@@ -1,0 +1,33 @@
+linux: &linux
+  os: linux
+  sudo: required
+  language: python
+  python: "2.7"
+  services:
+    - docker
+osx: &osx
+  os: osx
+  language: generic
+matrix:
+  include:
+    - <<: *linux
+      env:  CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49 CONAN_BUILD_TYPES=Release CONAN_ARCHS=x86_64
+
+install:
+  - sudo pip install conan --upgrade
+  - sudo pip install conan_package_tools bincrafters_package_tools
+  - sudo pip install shell
+  - sudo conan user
+
+addons:
+  coverity_scan:
+    project:
+      name: ${TRAVIS_COVERITY_SCAN_PROJECT_NAME} # yjjnls/plugin.node
+    notification_email: ${TRAVIS_COVERITY_SCAN_NOTIFICATION_EMAIL}
+    build_command_prepend: "chmod +x .travis/install.sh && ./.travis/install.sh && mkdir -p build && cd build && sudo conan install .. && cmake ../plugin"
+    build_command: "make"
+    branch_pattern: coverity_scan
+
+script:
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then sudo python build.py ; fi
+  # - sudo python build.py
