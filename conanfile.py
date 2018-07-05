@@ -27,11 +27,15 @@ class NodePlugin(ConanFile):
 
     def configure(self):
         self.options["tesseract"].shared = True
-        if self.settings.os == 'Linux':
-            self.run("sudo conan remote add upload_tesseract \
-            https://api.bintray.com/conan/${CONAN_USERNAME}/stable --insert 0")
 
     def requirements(self):
+        try:
+            if self.settings.os == 'Linux':
+                self.run("sudo conan remote add upload_tesseract \
+                https://api.bintray.com/conan/${CONAN_USERNAME}/stable --insert 0"
+                         )
+        except Exception as e:
+            print e.message
         # custom: requires
         self.requires("tesseract/3.05.01@yjjnls/stable")
 
