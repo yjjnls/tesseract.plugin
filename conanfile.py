@@ -11,7 +11,7 @@ __dir__ = os.path.dirname(os.path.abspath(__file__))
 
 class NodePlugin(ConanFile):
     name = "tesseract.plugin"
-    version = "0.1.0-dev"
+    version = "0.2.0"
     description = "Node.js addon for c plugin dynamic."
     url = "https://github.com/kedacomresearch/tesseract.plugin"
     license = "Apache-2.0"
@@ -57,7 +57,7 @@ class NodePlugin(ConanFile):
             self.options.remove("fPIC")
 
     def build(self):
-        for p in self.deps_cpp_info.lib_paths:
+        for p in self.deps_cpp_info.build_paths:
             pc_file = self.getallfile(p)
             if pc_file:
                 searchObj = re.search('/(.*)/.conan/data', pc_file)
@@ -104,12 +104,22 @@ class NodePlugin(ConanFile):
         self.copy(pattern='test.bmp', dst="test", src="plugin/test")
 
     def package_info(self):
-        for p in self.deps_cpp_info.lib_paths:
+        for p in self.deps_cpp_info.build_paths:
             pc_file = self.getallfile(p)
             if pc_file:
                 searchObj = re.search('/(.*)/.conan/data', pc_file)
                 if searchObj:
                     self.replace_pc(pc_file, searchObj.group(1))
+        
+        if platform.system() == "Windows":
+            tessdata_dir = "c:\\"
+        else:
+            tessdata_dir = "/tmp"
+
+        if not os.path.exists("%s/tessdata" % tessdata_dir):
+            self.run(
+                "git clone https://github.com/yjjnls/tessdata.git --depth=1",
+                cwd=tessdata_dir)
 
     def getallfile(self, path):
         allfilelist = os.listdir(path)
