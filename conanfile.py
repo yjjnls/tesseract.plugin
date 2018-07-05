@@ -29,6 +29,9 @@ class NodePlugin(ConanFile):
         self.options["tesseract"].shared = True
 
     def requirements(self):
+        if self.settings.os == 'Linux':
+            self.run("sudo conan remote add upload_tesseract \
+            https://api.bintray.com/conan/${CONAN_USERNAME}/stable --insert 0")
 
         # custom: requires
         self.requires("tesseract/3.05.01@yjjnls/stable")
@@ -39,9 +42,6 @@ class NodePlugin(ConanFile):
 
     def build(self):
         if self.settings.os == 'Linux':
-            self.run(
-                "sudo conan remote add upload_stable https://api.bintray.com/conan/${CONAN_USERNAME}/stable --insert 0"
-            )
             self.run(
                 "wget https://pkg-config.freedesktop.org/releases/pkg-config-0.29.1.tar.gz",
                 cwd="/tmp")
