@@ -40,7 +40,7 @@ class NodePlugin(ConanFile):
         if self.settings.os == "Windows":
             self.options.remove("fPIC")
 
-    def system_requirements(self):
+    def build(self):
         if self.settings.os == 'Linux':
             self.run(
                 "wget https://pkg-config.freedesktop.org/releases/pkg-config-0.29.1.tar.gz",
@@ -52,7 +52,6 @@ class NodePlugin(ConanFile):
             self.run("make", cwd="/tmp/pkg-config-0.29.1")
             self.run("sudo make install", cwd="/tmp/pkg-config-0.29.1")
 
-    def build(self):
         options = {
             'arch': 'x64',
             'compiler': '',
