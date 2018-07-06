@@ -12,11 +12,14 @@ class TestPackageConan(ConanFile):
             if platform.system() == "Windows":
                 tessdata_dir = "c:\\"
             else:
-                tessdata_dir = "/tmp/"
-            self.run(
-                "git clone https://github.com/yjjnls/nothing.git --depth=1",
-                cwd=tessdata_dir)
-            os.environ["TESSDATA_PREFIX"] = "%snothing" % tessdata_dir
+                tessdata_dir = "/tmp"
+
+            if not os.path.exists("%s/nothing" % tessdata_dir):
+                self.run(
+                    "git clone https://github.com/yjjnls/nothing.git --depth=1",
+                    cwd=tessdata_dir)
+
+            os.environ["TESSDATA_PREFIX"] = "%s/nothing" % tessdata_dir
 
     def test(self):
         if platform.system() == "Windows":

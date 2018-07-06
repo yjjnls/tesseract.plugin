@@ -35,7 +35,7 @@ class NodePlugin(ConanFile):
                 https://api.bintray.com/conan/${CONAN_USERNAME}/stable --insert 0"
                          )
         except Exception as e:
-            print e.message
+            print "The repo may have been added, the error above can be ignored."
         # custom: requires
         self.requires("tesseract/3.05.01@yjjnls/stable")
 
