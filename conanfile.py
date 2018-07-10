@@ -11,7 +11,7 @@ __dir__ = os.path.dirname(os.path.abspath(__file__))
 
 class NodePlugin(ConanFile):
     name = "tesseract.plugin"
-    version = "0.2.1"
+    version = "0.2.2"
     description = "Node.js addon for c plugin dynamic."
     url = "https://github.com/kedacomresearch/tesseract.plugin"
     license = "Apache-2.0"
@@ -37,7 +37,7 @@ class NodePlugin(ConanFile):
         try:
             if self.settings.os == 'Linux':
                 self.run("sudo conan remote add upload_tesseract \
-                https://api.bintray.com/conan/${CONAN_USERNAME}/stable --insert 0"
+                https://api.bintray.com/conan/${CONAN_USERNAME}/stable --insert 0 >/dev/null"
                          )
         except Exception as e:
             print "The repo may have been added, the error above can be ignored."
@@ -46,17 +46,18 @@ class NodePlugin(ConanFile):
 
     def build_requirements(self):
         if self.settings.os == 'Linux':
-            if not os.getenv('PKG_CONFIG_EXECUTABLE'):
-                self.run(
-                    "wget https://pkg-config.freedesktop.org/releases/pkg-config-0.29.1.tar.gz",
-                    cwd="/tmp")
-                self.run("tar -zxf pkg-config-0.29.1.tar.gz", cwd="/tmp")
-                self.run(
-                    "./configure --prefix=/usr --with-internal-glib \
-                    --disable-host-tool --docdir=/usr/share/doc/pkg-config-0.29.1",
-                    cwd="/tmp/pkg-config-0.29.1")
-                self.run("make", cwd="/tmp/pkg-config-0.29.1")
-                self.run("sudo make install", cwd="/tmp/pkg-config-0.29.1")
+            self.run(
+                "if [ `expr $(pkg-config --version) \< 0.29.1` -ne 0 ]; then \
+                cd /tmp \
+                && wget https://pkg-config.freedesktop.org/releases/pkg-config-0.29.1.tar.gz \
+                && tar -zxf pkg-config-0.29.1.tar.gz \
+                && cd pkg-config-0.29.1 \
+                && ./configure --prefix=/usr        \
+                --with-internal-glib \
+                --disable-host-tool  \
+                --docdir=/usr/share/doc/pkg-config-0.29.1 \
+                && make \
+                && sudo make install; fi")
 
     def build(self):
         for p in self.deps_cpp_info.build_paths:
