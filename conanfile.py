@@ -29,7 +29,15 @@ class NodePlugin(ConanFile):
     def configure(self):
         self.options["tesseract"].shared = True
 
+    def config_options(self):
+        if self.settings.os == "Windows":
+            self.options.remove("fPIC")
+
     def requirements(self):
+        # custom: requires
+        self.requires("tesseract/3.05.01@yjjnls/stable")
+
+    def build_requirements(self):
         if self.settings.os == 'Linux':
             if not os.getenv('PKG_CONFIG_EXECUTABLE'):
                 self.run(
@@ -37,7 +45,8 @@ class NodePlugin(ConanFile):
                     cwd="/tmp")
                 self.run("tar -zxf pkg-config-0.29.1.tar.gz", cwd="/tmp")
                 self.run(
-                    "./configure --prefix=/usr --with-internal-glib --disable-host-tool --docdir=/usr/share/doc/pkg-config-0.29.1",
+                    "./configure --prefix=/usr --with-internal-glib \
+                    --disable-host-tool --docdir=/usr/share/doc/pkg-config-0.29.1",
                     cwd="/tmp/pkg-config-0.29.1")
                 self.run("make", cwd="/tmp/pkg-config-0.29.1")
                 self.run("sudo make install", cwd="/tmp/pkg-config-0.29.1")
@@ -49,12 +58,6 @@ class NodePlugin(ConanFile):
                          )
         except Exception as e:
             print "The repo may have been added, the error above can be ignored."
-        # custom: requires
-        self.requires("tesseract/3.05.01@yjjnls/stable")
-
-    def config_options(self):
-        if self.settings.os == "Windows":
-            self.options.remove("fPIC")
 
     def build(self):
         for p in self.deps_cpp_info.build_paths:
@@ -110,7 +113,7 @@ class NodePlugin(ConanFile):
                 searchObj = re.search('/(.*)/.conan/data', pc_file)
                 if searchObj:
                     self.replace_pc(pc_file, searchObj.group(1))
-        
+
         if platform.system() == "Windows":
             tessdata_dir = "c:\\"
         else:
