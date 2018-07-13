@@ -11,7 +11,7 @@ __dir__ = os.path.dirname(os.path.abspath(__file__))
 
 class NodePlugin(ConanFile):
     name = "tesseract.plugin"
-    version = "0.2.2"
+    version = "0.3.0"
     description = "Node.js addon for c plugin dynamic."
     url = "https://github.com/kedacomresearch/tesseract.plugin"
     license = "Apache-2.0"
@@ -37,12 +37,13 @@ class NodePlugin(ConanFile):
         try:
             if self.settings.os == 'Linux':
                 self.run("sudo conan remote add upload_tesseract \
-                https://api.bintray.com/conan/${CONAN_USERNAME}/stable --insert 0 >/dev/null"
+                https://api.bintray.com/conan/${DEPENDENT_BINTRAY_REPO}/stable --insert 0 >/dev/null"
                          )
         except Exception as e:
             print "The repo may have been added, the error above can be ignored."
         # custom: requires
-        self.requires("tesseract/3.05.01@yjjnls/stable")
+        self.requires("tesseract/3.05.01@%s/stable" %
+                      os.environ.get("DEPENDENT_BINTRAY_REPO"))
 
     def build_requirements(self):
         if self.settings.os == 'Linux':
