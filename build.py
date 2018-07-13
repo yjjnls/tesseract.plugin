@@ -110,8 +110,6 @@ if __name__ == '__main__':
 
     CONAN_USERNAME = os.environ.get("CONAN_USERNAME", "yjjnls")
 
-    DEPENDENT_BINTRAY_REPO = os.environ.get("DEPENDENT_BINTRAY_REPO", CONAN_USERNAME)
-    os.environ['DEPENDENT_BINTRAY_REPO'] = DEPENDENT_BINTRAY_REPO
 
     try:
         if os.path.exists('conanfile.py'):

@@ -3,8 +3,8 @@ Plugin for Node.js to recognize stream-time by using tesseract.
 Node module node-plugin is required.
 
 ## Build
-[![travis](https://www.travis-ci.org/yjjnls/tesseract.plugin/builds#)](https://www.travis-ci.org/yjjnls/tesseract.plugin)
-[![Build status](https://ci.appveyor.com/api/projects/status/4pnwm14dmlgymrg8?svg=true)](https://ci.appveyor.com/project/yjjnls/tesseract-plugin)
+[![appveyor](https://ci.appveyor.com/api/projects/status/4pnwm14dmlgymrg8?svg=true)](https://ci.appveyor.com/project/yjjnls/tesseract-plugin)
+[![travis](https://www.travis-ci.org/yjjnls/tesseract.plugin.svg?branch=master)](https://www.travis-ci.org/yjjnls/tesseract.plugin)
 
 These environment vars must be set in travis/appveyor.  
 

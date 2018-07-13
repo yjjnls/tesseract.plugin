@@ -37,13 +37,13 @@ class NodePlugin(ConanFile):
         try:
             if self.settings.os == 'Linux':
                 self.run("sudo conan remote add upload_tesseract \
-                https://api.bintray.com/conan/${DEPENDENT_BINTRAY_REPO}/stable --insert 0 >/dev/null"
-                         )
+                https://api.bintray.com/conan/%s/stable --insert 0 >/dev/null" %
+                         os.environ.get("DEPENDENT_BINTRAY_REPO", os.environ.get("CONAN_USERNAME")))
         except Exception as e:
             print "The repo may have been added, the error above can be ignored."
         # custom: requires
         self.requires("tesseract/3.05.01@%s/stable" %
-                      os.environ.get("DEPENDENT_BINTRAY_REPO"))
+                      os.environ.get("DEPENDENT_BINTRAY_REPO", os.environ.get("CONAN_USERNAME")))
 
     def build_requirements(self):
         if self.settings.os == 'Linux':
